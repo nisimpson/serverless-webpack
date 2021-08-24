@@ -348,8 +348,8 @@ custom:
 #### Packagers
 
 You can select the packager that will be used to package your external modules.
-The packager can be set with the packager configuration. Currently it can be 'npm'
-or 'yarn' and defaults to using npm when not set.
+The packager can be set with the packager configuration. Currently it can be 'npm',
+'yarn', or ['yarn2'](link-yarn-2) and defaults to using npm when not set.
 
 ```yaml
 # serverless.yml
@@ -384,6 +384,44 @@ The yarn packager supports the following `packagerOptions`:
 | ignoreScripts      | bool | false   | Do not execute package.json hook scripts on install |
 | noFrozenLockfile   | bool | false   | Do not require an up-to-date yarn.lock              |
 | networkConcurrency | int  |         | Specify number of concurrent network requests       |
+
+##### Yarn 2
+
+> Yarn 2.0+ support is experimental and not fully supported. Production applications should stick with the 'yarn' or 'npm' packagers.
+
+[Yarn versions 2.0 and above](https://yarnpkg.com/getting-started/install) have made extensive changes to package management and workspaces that it
+must be handled separately. Update the project `yarnrc.yml` configuration to use the `node_modules`
+linking strategy:
+
+```yaml
+# yarnrc.yml
+
+nodeLinker: node-modules
+```
+
+* If the target serverless application resides within a monorepo, the webpack configuration must specify an [output](link-output) directory located outside of the monorepo root; otherwise, yarn will complain about duplicate projects found within the monorepo during the packaging process.
+
+* Avoid using the serverless CLI within the context of yarn 2 (aka, via package script or `yarn exec`). This allows the global version of yarn to retrieve and install function dependencies.
+
+* If the target serverless application depends on private packages within the monorepo, consider bundling them via `webpack-node-externals`:
+
+```javascript
+// webpack.config.js
+
+const nodeExternals = require('webpack-node-externals');
+
+module.exports = {
+  // ...
+  resolve: {
+    externals: [
+      nodeExternals({ allowList: [
+        '@monorepo/private-lib1',
+        '@monorepo/private-lib2'
+      ]})
+    ]
+  }
+}
+```
 
 ##### Common packager options
 

@@ -8,3 +8,9 @@ coverage
 .idea
 /.nyc_output
 .history
+
+# yarn
+.yarn
+.pnp.*
+.yarnrc.yml
+yarn.lock
